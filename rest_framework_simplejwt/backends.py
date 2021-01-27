@@ -16,13 +16,14 @@ ALLOWED_ALGORITHMS = (
 
 
 class TokenBackend:
-    def __init__(self, algorithm, signing_key=None, verifying_key=None, audience=None, issuer=None):
+    def __init__(self, algorithm, signing_key=None, verifying_key=None, audience=None, issuer=None, kid=None):
         self._validate_algorithm(algorithm)
 
         self.algorithm = algorithm
         self.signing_key = signing_key
         self.audience = audience
         self.issuer = issuer
+        self.kid = kid
         if algorithm.startswith('HS'):
             self.verifying_key = signing_key
         else:
@@ -49,7 +50,7 @@ class TokenBackend:
         if self.issuer is not None:
             jwt_payload['iss'] = self.issuer
 
-        token = jwt.encode(jwt_payload, self.signing_key, algorithm=self.algorithm)
+        token = jwt.encode(jwt_payload, self.signing_key, algorithm=self.algorithm, headers={'kid': self.kid })
         if isinstance(token, bytes):
             # For PyJWT <= 1.7.1
             return token.decode('utf-8')
